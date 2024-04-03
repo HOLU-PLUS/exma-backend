@@ -1,0 +1,144 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+
+
+model Permissions {
+  id                      Int                         @id @default(autoincrement())
+  name                    String                      @db.VarChar(255)
+  module                  String                      @db.VarChar(255)
+  createdAt               DateTime                    @default(now())
+  updatedAt               DateTime                    @updatedAt
+  roles                   Roles[]
+}
+
+model Roles {
+  id                      Int                         @id @default(autoincrement())
+  name                    String                      @db.VarChar(255)
+  state                   Boolean                     @default(true)
+  createdAt               DateTime                    @default(now())
+  updatedAt               DateTime                    @updatedAt
+  permissions             Permissions[]
+  staff                   Staffs[]
+}
+
+
+model Users {
+  id                      Int                         @id @default(autoincrement())
+  name                    String                      @db.VarChar(255)
+  lastName                String                      @db.VarChar(255)
+  email                   String                      @unique
+  emailValidated          Boolean                     @default(false)
+  image                   String?                     @db.VarChar(255)
+  phone                   String                      @db.VarChar(255)
+  password                String                      @db.VarChar(255)
+  createdAt               DateTime                    @default(now())
+  updatedAt               DateTime                    @updatedAt
+  staffs                  Staffs?
+  guests                  Guests?
+  speakers                Speakers?
+}
+
+model Staffs {
+  id                      Int                         @id @default(autoincrement())
+  userId                  Int                         @unique
+  roleId                  Int                         @db.Integer
+  state                   Boolean                     @default(true)
+  superStaff              Boolean                     @default(false)   
+  createdAt               DateTime                    @default(now())   
+  updatedAt               DateTime                    @updatedAt    
+  user                    Users                       @relation(fields: [userId], references: [id])
+  role                    Roles                       @relation(fields: [roleId], references: [id])
+  attendanceEvent         AttendanceEvents[]
+  attendanceActivities    AttendanceActivities[]
+}
+
+model Guests {
+  id                      Int                         @id @default(autoincrement())
+  userId                  Int                         @unique
+  codeQr                  String                      @unique
+  state                   Boolean                     @default(true)
+  createdAt               DateTime                    @default(now())
+  updatedAt               DateTime                    @updatedAt
+  user                    Users                       @relation(fields: [userId], references: [id])
+  attendanceEvent         AttendanceEvents[]
+  attendanceActivities    AttendanceActivities[]
+}
+
+model Speakers {
+  id                      Int                         @id @default(autoincrement())
+  userId                  Int                         @unique
+  ci                      String                      @unique
+  state                   Boolean                     @default(true)
+  createdAt               DateTime                    @default(now())
+  updatedAt               DateTime                    @updatedAt
+  user                    Users                       @relation(fields: [userId], references: [id])
+}
+
+model Events {
+  id                      Int                         @id @default(autoincrement())
+  name                    String                      @db.VarChar(255)
+  price                   Int                         @db.Integer @default(0)
+  start                   DateTime                    @db.Date
+  end                     DateTime                    @db.Date
+  state                   Boolean                     @default(true)
+  createdAt               DateTime                    @default(now())
+  updatedAt               DateTime                    @updatedAt
+  activities              Activities[]
+  attendanceEvents        AttendanceEvents[]
+}
+
+model Activities {
+  id                      Int                         @id @default(autoincrement())
+  eventId                 Int                         @db.Integer
+  name                    String                      @db.VarChar(255)
+  start                   DateTime                    @db.Date
+  end                     DateTime                    @db.Date
+  state                   Boolean                     @default(true)
+  createdAt               DateTime                    @default(now())
+  updatedAt               DateTime                    @updatedAt
+  event                   Events                      @relation(fields: [eventId], references: [id])
+  attendanceActivities    AttendanceActivities[]
+}
+
+model AttendanceEvents {
+  id                      Int                         @id @default(autoincrement())
+  eventId                 Int                         @db.Integer
+  staffId                 Int                         @db.Integer
+  guestId                 Int                         @db.Integer
+  createdAt               DateTime                    @default(now())
+  event                   Events                      @relation(fields: [eventId], references: [id])
+  staff                   Staffs                      @relation(fields: [staffId], references: [id])
+  guests                  Guests                      @relation(fields: [guestId], references: [id])
+
+}
+
+model AttendanceActivities {
+  id                      Int                         @id @default(autoincrement())
+  activitiyId             Int                         @db.Integer
+  staffId                 Int                         @db.Integer
+  guestId                 Int                         @db.Integer
+  createdAt               DateTime                    @default(now())
+  Activitie               Activities                  @relation(fields: [activitiyId], references: [id])
+  staff                   Staffs                      @relation(fields: [staffId], references: [id])
+  guests                  Guests                      @relation(fields: [guestId], references: [id])
+}
+
+model Business {
+  id                      Int                         @id @default(autoincrement())
+  name                    String                      @db.VarChar(255)
+  logo                    String                      @db.VarChar(255)
+  color                   String                      @db.VarChar(255)
+}

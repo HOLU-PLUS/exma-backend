@@ -81,7 +81,33 @@ export class AuthService {
       user: userEntity,
       token: token,
     }
+  }
 
+  public async loginGuest(loginUserDto: LoginUserDto) {
+
+    const user = await prisma.users.findFirst({
+      where: {
+        email: loginUserDto.email
+      },
+      include: {
+        guests:true
+      }
+    });
+    console.log(user)
+    if (!user) throw CustomError.badRequest('El Correo no existe');
+
+    const isMatching = bcryptAdapter.compare(loginUserDto.password, user.password);
+    if (!isMatching) throw CustomError.badRequest('La Contraseña no es valida');
+
+    const { emailValidated,password, ...userEntity } = UserEntity.fromObjectAuth(user);
+
+    const token = await JwtAdapter.generateToken({ id: user.id });
+    if (!token) throw CustomError.internalServer('Error al crear la llave');
+
+    return {
+      user: userEntity,
+      token: token,
+    }
   }
 
 

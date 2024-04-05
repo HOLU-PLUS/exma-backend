@@ -24,6 +24,7 @@ export class Authroutes {
     
     // Definir las rutas
     router.post('/', controller.loginUser );
+    router.post('/guest', controller.loginGuest );
 
     router.post('/register', controller.registerUser );
     

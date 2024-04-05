@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import { GuestDto, CustomError, PaginationDto, UserEntity, StudentEntity, } from '../../domain';
 import { bcryptAdapter } from '../../config';
+import { v4 as uuidv4 } from 'uuid';
 
 const prisma = new PrismaClient();
 
@@ -60,6 +61,7 @@ export class GuestService {
             email: createStudentDto.email,
             phone: '5917373566',
             password: await bcryptAdapter.hash(createStudentDto.email), // Hasheamos la contraseña
+            emailValidated:true,
           },
         });
         userId = user.id;
@@ -76,21 +78,21 @@ export class GuestService {
         }
       });
 
-      if (staffExists) throw CustomError.badRequest('El estudiante ya existe');
+      if (staffExists) throw CustomError.badRequest('La cuenta ya existe');
 
-      const student = await prisma.guests.create({
+      const guest = await prisma.guests.create({
         data: {
-          codeQr:createStudentDto.codeQr,
+          codeQr:uuidv4(),
           userId: userId,
         },
         include: {
           user: true,
         }
       });
-      console.log(student)
+      console.log(guest)
 
 
-      const { ...studentEntity } = StudentEntity.fromObject(student);
+      const { ...studentEntity } = StudentEntity.fromObject(guest);
       return studentEntity;
 
     } catch (error) {
@@ -120,6 +122,7 @@ export class GuestService {
       const staff = await prisma.guests.update({
         where: { id: studentId },
         data: {
+          codeQr:'asdasds',
           ...updateStudentDto,
         },
         include: {

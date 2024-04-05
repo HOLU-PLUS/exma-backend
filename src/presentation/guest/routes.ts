@@ -11,10 +11,10 @@ export class GuestRoutes {
     const controller = new GuestController(guestService);
 
     // rutas
-    router.get( '/', [ AuthMiddleware.validateJWT ],controller.getGuests );
-    router.post( '/',[ AuthMiddleware.validateJWT ],controller.createGuest );
-    router.put( '/:id',[AuthMiddleware.validateJWT],controller.updateGuest );
-    router.delete( '/:id',[AuthMiddleware.validateJWT],controller.deleteGuest )
+    router.get('/', [AuthMiddleware.validateJWT], controller.getGuests);
+    router.post('/', controller.createGuest);
+    router.put('/:id', [AuthMiddleware.validateJWT], controller.updateGuest);
+    router.delete('/:id', [AuthMiddleware.validateJWT], controller.deleteGuest)
     return router;
   }
 }

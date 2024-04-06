@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import { RoleDto, CustomError, PaginationDto, RoleEntity, UserEntity } from '../../domain';
+import { RoleDto, CustomError, PaginationDto, EventEntity, UserEntity } from '../../domain';
 
 const prisma = new PrismaClient();
 
@@ -32,7 +32,7 @@ export class RoleService {
         next: `/api/role?page=${(page + 1)}&limit=${limit}`,
         prev: (page - 1 > 0) ? `/api/role?page=${(page - 1)}&limit=${limit}` : null,
         roles: roles.map(role => {
-          const { ...roleEntity } = RoleEntity.fromObject(role);
+          const { ...roleEntity } = EventEntity.fromObject(role);
           return roleEntity;
         })
       };
@@ -72,7 +72,7 @@ export class RoleService {
         }
       });
 
-      const { ...roleEntity } = RoleEntity.fromObject(roleCreate!);
+      const { ...roleEntity } = EventEntity.fromObject(roleCreate!);
       return roleEntity;
 
     } catch (error) {
@@ -113,7 +113,7 @@ export class RoleService {
           permissions: true
         }
       });
-      return RoleEntity.fromObject(role);
+      return EventEntity.fromObject(role);
     } catch (error) {
       throw CustomError.internalServer(`${error}`);
     }

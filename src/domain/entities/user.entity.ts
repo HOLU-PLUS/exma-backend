@@ -1,4 +1,4 @@
-import { StaffEntity } from '..';
+import { GuestEntity, StaffEntity } from '..';
 import { CustomError } from '../errors/custom.error';
 
 export class UserEntity {
@@ -12,10 +12,11 @@ export class UserEntity {
     public password?: string,
     public image?: string,
     public staffs?: StaffEntity,
+    public guests?: GuestEntity,
   ) { }
 
   static fromObjectAuth(object: { [key: string]: any; }) {
-    const { id, name, lastName, email, emailValidated, password, image, staffs } = object;
+    const { id, name, lastName, email, emailValidated, password, image, staffs,guests } = object;
 
     if (!id) throw CustomError.badRequest('Falta id');
     if (!name) throw CustomError.badRequest('Falta el nombre');
@@ -25,8 +26,9 @@ export class UserEntity {
     if (!password) throw CustomError.badRequest('Falta la contraseña');
 
     const staffsEntity = staffs ? StaffEntity.fromObjectAuth(staffs) : undefined;
+    const guestEntity = guests ? GuestEntity.fromObject(guests) : undefined;
 
-    return new UserEntity(id, name, lastName, email, emailValidated, password, image, staffsEntity);
+    return new UserEntity(id, name, lastName, email, emailValidated, password, image, staffsEntity, guestEntity);
   }
 
   static fromObject(object: { [key: string]: any; }) {

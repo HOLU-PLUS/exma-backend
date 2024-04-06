@@ -1,6 +1,6 @@
 import { UserEntity } from "..";
 
-export class StudentEntity {
+export class GuestEntity {
   constructor(
     public id: number,
     public codeQr: string,
@@ -12,6 +12,6 @@ export class StudentEntity {
 
     const userEntity = user ? UserEntity.fromObject(user) : undefined;
 
-    return new StudentEntity(id, codeQr, userEntity);
+    return new GuestEntity(id, codeQr, userEntity);
   }
 }

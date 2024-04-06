@@ -3,8 +3,6 @@ import { RoleDto, CustomError, PaginationDto } from '../../domain';
 import { RoleService } from '../services';
 
 
-
-
 export class RoleController {
 
   constructor(

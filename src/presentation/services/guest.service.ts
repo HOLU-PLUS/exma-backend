@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import { GuestDto, CustomError, PaginationDto, UserEntity, StudentEntity, } from '../../domain';
+import { GuestDto, CustomError, PaginationDto, UserEntity, GuestEntity, } from '../../domain';
 import { bcryptAdapter } from '../../config';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -33,7 +33,7 @@ export class GuestService {
         next: `/api/student?page=${(page + 1)}&limit=${limit}`,
         prev: (page - 1 > 0) ? `/api/student?page=${(page - 1)}&limit=${limit}` : null,
         students: students.map(student => {
-          const { ...studentEntity } = StudentEntity.fromObject(student);
+          const { ...studentEntity } = GuestEntity.fromObject(student);
           return studentEntity;
         })
       };
@@ -92,7 +92,7 @@ export class GuestService {
       console.log(guest)
 
 
-      const { ...studentEntity } = StudentEntity.fromObject(guest);
+      const { ...studentEntity } = GuestEntity.fromObject(guest);
       return studentEntity;
 
     } catch (error) {
@@ -130,7 +130,7 @@ export class GuestService {
         }
       });
 
-      return StudentEntity.fromObject(staff);
+      return GuestEntity.fromObject(staff);
     } catch (error) {
       throw CustomError.internalServer(`${error}`);
     }

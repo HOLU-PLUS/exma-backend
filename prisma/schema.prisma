@@ -87,8 +87,7 @@ model Staffs {
   updatedAt               DateTime                    @updatedAt    
   user                    Users                       @relation(fields: [userId], references: [id])
   role                    Roles                       @relation(fields: [roleId], references: [id])
-  attendanceEvents        AttendanceEvents[]
-  attendanceActivities    AttendanceActivities[]
+  attendances             Attendances[]
 }
 
 model Guests {
@@ -99,8 +98,7 @@ model Guests {
   createdAt               DateTime                    @default(now())
   updatedAt               DateTime                    @updatedAt
   user                    Users                       @relation(fields: [userId], references: [id])
-  attendanceEvents        AttendanceEvents[]
-  attendanceActivities    AttendanceActivities[]
+  attendances             Attendances[]
 }
 
 model Speakers {
@@ -124,7 +122,7 @@ model Events {
   createdAt               DateTime                    @default(now())
   updatedAt               DateTime                    @updatedAt
   activities              Activities[]
-  attendanceEvents        AttendanceEvents[]
+  attendances             Attendances[]
 }
 
 model Activities {
@@ -138,10 +136,9 @@ model Activities {
   createdAt               DateTime                    @default(now())
   updatedAt               DateTime                    @updatedAt
   event                   Events                      @relation(fields: [eventId], references: [id])
-  attendanceActivities    AttendanceActivities[]
 }
 
-model AttendanceEvents {
+model Attendances {
   id                      Int                         @id @default(autoincrement())
   eventId                 Int                         @db.Integer
   staffId                 Int                         @db.Integer
@@ -151,17 +148,6 @@ model AttendanceEvents {
   staff                   Staffs                      @relation(fields: [staffId], references: [id])
   guest                   Guests                      @relation(fields: [guestId], references: [id])
 
-}
-
-model AttendanceActivities {
-  id                      Int                         @id @default(autoincrement())
-  activitiyId             Int                         @db.Integer
-  staffId                 Int                         @db.Integer
-  guestId                 Int                         @db.Integer
-  createdAt               DateTime                    @default(now())
-  Activity                Activities                  @relation(fields: [activitiyId], references: [id])
-  staff                   Staffs                      @relation(fields: [staffId], references: [id])
-  guest                   Guests                      @relation(fields: [guestId], references: [id])
 }
 
 model Business {

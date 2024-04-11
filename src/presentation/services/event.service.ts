@@ -5,9 +5,9 @@ import {
   PaginationDto,
   EventEntity,
   UserEntity,
-  AttendanceEventDto,
+  AttendanceDto,
   CustomSuccessful,
-  AttendanceEventEntity,
+  AttendanceEntity,
 } from '../../domain';
 
 const prisma = new PrismaClient();
@@ -28,7 +28,7 @@ export class EventService {
           },
           include: {
             activities: true,
-            attendanceEvents: {
+            attendances: {
               include: {
                 guest: {
                   include:{
@@ -64,9 +64,9 @@ export class EventService {
     }
   }
 
-  async createaAttendanceEvent(createAttendanceEventDto: AttendanceEventDto, user: UserEntity) {
-    const { eventId, qrGuest } = createAttendanceEventDto;
-    const eventExists = await prisma.attendanceEvents.findFirst({
+  async createAttendance(createAttendanceDto: AttendanceDto, user: UserEntity) {
+    const { eventId, qrGuest } = createAttendanceDto;
+    const eventExists = await prisma.attendances.findFirst({
       where: {
         eventId: eventId,
         guest: {
@@ -85,7 +85,7 @@ export class EventService {
     });
     if (!guest) throw CustomError.badRequest('No se pudo encontrar al invitado');
     try {
-      const attendanceEvent = await prisma.attendanceEvents.create({
+      const attendance = await prisma.attendances.create({
         data: {
           eventId: eventId,
           guestId: guest!.id,
@@ -104,8 +104,8 @@ export class EventService {
           },
         },
       });
-      const { ...attendanceEventEntity } = AttendanceEventEntity.fromObject(attendanceEvent);
-      return CustomSuccessful.response({ result: attendanceEventEntity });
+      const { ...attendanceEntity } = AttendanceEntity.fromObject(attendance);
+      return CustomSuccessful.response({ result: attendanceEntity });
     } catch (error) {
       throw CustomError.internalServer(`${error}`);
     }
@@ -126,7 +126,7 @@ export class EventService {
         },
         include: {
           activities: true,
-          attendanceEvents: {
+          attendances: {
             include: {
               guest: {
                 include:{

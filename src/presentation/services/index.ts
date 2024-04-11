@@ -6,3 +6,5 @@ export * from './staff.service';
 export * from './guest.service';
 export * from './speaker.service';
 export * from './event.service';
+export * from './availability.service';
+export * from './request.service';

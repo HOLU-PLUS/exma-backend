@@ -130,25 +130,14 @@ CREATE TABLE "Activities" (
 );
 
 -- CreateTable
-CREATE TABLE "AttendanceEvents" (
+CREATE TABLE "Attendances" (
     "id" SERIAL NOT NULL,
     "eventId" INTEGER NOT NULL,
     "staffId" INTEGER NOT NULL,
     "guestId" INTEGER NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    CONSTRAINT "AttendanceEvents_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "AttendanceActivities" (
-    "id" SERIAL NOT NULL,
-    "activitiyId" INTEGER NOT NULL,
-    "staffId" INTEGER NOT NULL,
-    "guestId" INTEGER NOT NULL,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-    CONSTRAINT "AttendanceActivities_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "Attendances_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -189,9 +178,6 @@ CREATE UNIQUE INDEX "Speakers_userId_key" ON "Speakers"("userId");
 CREATE UNIQUE INDEX "Speakers_ci_key" ON "Speakers"("ci");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Activities_name_key" ON "Activities"("name");
-
--- CreateIndex
 CREATE UNIQUE INDEX "_PermissionsToRoles_AB_unique" ON "_PermissionsToRoles"("A", "B");
 
 -- CreateIndex
@@ -222,22 +208,13 @@ ALTER TABLE "Speakers" ADD CONSTRAINT "Speakers_userId_fkey" FOREIGN KEY ("userI
 ALTER TABLE "Activities" ADD CONSTRAINT "Activities_eventId_fkey" FOREIGN KEY ("eventId") REFERENCES "Events"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "AttendanceEvents" ADD CONSTRAINT "AttendanceEvents_eventId_fkey" FOREIGN KEY ("eventId") REFERENCES "Events"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Attendances" ADD CONSTRAINT "Attendances_eventId_fkey" FOREIGN KEY ("eventId") REFERENCES "Events"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "AttendanceEvents" ADD CONSTRAINT "AttendanceEvents_staffId_fkey" FOREIGN KEY ("staffId") REFERENCES "Staffs"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Attendances" ADD CONSTRAINT "Attendances_staffId_fkey" FOREIGN KEY ("staffId") REFERENCES "Staffs"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "AttendanceEvents" ADD CONSTRAINT "AttendanceEvents_guestId_fkey" FOREIGN KEY ("guestId") REFERENCES "Guests"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "AttendanceActivities" ADD CONSTRAINT "AttendanceActivities_activitiyId_fkey" FOREIGN KEY ("activitiyId") REFERENCES "Activities"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "AttendanceActivities" ADD CONSTRAINT "AttendanceActivities_staffId_fkey" FOREIGN KEY ("staffId") REFERENCES "Staffs"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "AttendanceActivities" ADD CONSTRAINT "AttendanceActivities_guestId_fkey" FOREIGN KEY ("guestId") REFERENCES "Guests"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Attendances" ADD CONSTRAINT "Attendances_guestId_fkey" FOREIGN KEY ("guestId") REFERENCES "Guests"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "_PermissionsToRoles" ADD CONSTRAINT "_PermissionsToRoles_A_fkey" FOREIGN KEY ("A") REFERENCES "Permissions"("id") ON DELETE CASCADE ON UPDATE CASCADE;

@@ -1,4 +1,4 @@
-import { ActivitieEntity, AttendanceEventEntity } from '..';
+import { ActivitieEntity, AttendanceEntity } from '..';
 
 export class EventEntity {
   constructor(
@@ -9,7 +9,7 @@ export class EventEntity {
     public start: Date,
     public end: Date,
     public activities?: ActivitieEntity[],
-    public attendanceEvents?: AttendanceEventEntity[]
+    public attendanceEvents?: AttendanceEntity[]
   ) {}
 
   static fromObject(object: { [key: string]: any }) {
@@ -17,7 +17,7 @@ export class EventEntity {
 
     const activitieEntity = activities ? activities.map((e: ActivitieEntity) => ActivitieEntity.fromObject(e)) : undefined;
     const attendanceEventEntity = attendanceEvents
-      ? attendanceEvents.map((e: AttendanceEventEntity) => AttendanceEventEntity.fromObject(e))
+      ? attendanceEvents.map((e: AttendanceEntity) => AttendanceEntity.fromObject(e))
       : undefined;
 
     return new EventEntity(id, name, description, price, start, end, activitieEntity, attendanceEventEntity);

@@ -7,6 +7,8 @@ import { StaffRoutes } from './staff/routes';
 import { GuestRoutes } from './guest/routes';
 import { TeacherRoutes } from './speaker/routes';
 import { EventRoutes } from './event/routes';
+import { AvailabilityRoutes } from './availability/routes';
+import { RequestRoutes } from './request/routes';
 
 export class AppRoutes {
 
@@ -22,6 +24,8 @@ export class AppRoutes {
     router.use('/api/guest', GuestRoutes.routes);
     router.use('/api/speaker', TeacherRoutes.routes);
     router.use('/api/event', EventRoutes.routes);
+    router.use('/api/availability', AvailabilityRoutes.routes);
+    router.use('/api/request',RequestRoutes.routes);
 
     return router;
   }

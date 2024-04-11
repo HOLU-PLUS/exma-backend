@@ -1,5 +1,5 @@
 import { Response, Request } from 'express';
-import { EventDto, CustomError, PaginationDto, AttendanceEventDto } from '../../domain';
+import { EventDto, CustomError, PaginationDto, AttendanceDto } from '../../domain';
 import { EventService } from '../services';
 
 export class EventController {
@@ -34,12 +34,12 @@ export class EventController {
       .catch((error) => this.handleError(error, res));
   };
 
-  attendanceEvent = (req: Request, res: Response) => {
-    const [error, createAttendanceEvent] = AttendanceEventDto.body(req.body);
+  attendance = (req: Request, res: Response) => {
+    const [error, createAttendanceEvent] = AttendanceDto.body(req.body);
     if (error) return res.status(400).json({ error });
 
     this.eventService
-      .createaAttendanceEvent(createAttendanceEvent!, req.body.user)
+      .createAttendance(createAttendanceEvent!, req.body.user)
       .then((attendanceEvent) => res.status(201).json(attendanceEvent))
       .catch((error) => this.handleError(error, res));
   };

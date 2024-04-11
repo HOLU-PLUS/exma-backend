@@ -46,6 +46,10 @@ export class RequestService {
           userId: user.id,
           ...createRequestDto,
         },
+        include:{
+          user:true,
+          avalavility:true
+        }
       });
 
       const { ...requestEntity } = RequestEntity.fromObject(request);

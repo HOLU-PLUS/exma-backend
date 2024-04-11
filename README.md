@@ -1,10 +1,9 @@
 
 
 
-# Project CEUPRO BACKEND  NodeJS + ExpressJS + TypeScript + Postgres + PrismaORM
+# Project EXMA BACKEND  NodeJS + ExpressJS + TypeScript + Postgres + PrismaORM
 
-Este proyecto esta desarrollado para la carrera de Ingeniería de Sistemas - Universidad Privada Franz Tamayo - La Paz 
-
+Este proyecto esta desarrollado para EXMA
 
 ## Instalación
 

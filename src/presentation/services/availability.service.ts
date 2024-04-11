@@ -24,7 +24,7 @@ export class AvailabilityService {
           total: total,
           next: `/api/availavility?page=${page + 1}&limit=${limit}`,
           prev: page - 1 > 0 ? `/api/availavility?page=${page - 1}&limit=${limit}` : null,
-          roles: availabilities.map((role) => {
+          availabilities: availabilities.map((role) => {
             const { ...availabilityEntity } = AvailabilityEntity.fromObject(role);
             return availabilityEntity;
           }),

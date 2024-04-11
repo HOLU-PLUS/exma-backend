@@ -1,17 +1,15 @@
 import { PrismaClient } from '@prisma/client';
-import { StaffDto, CustomError, PaginationDto, StaffEntity, UserEntity, } from '../../domain';
+import { StaffDto, CustomError, PaginationDto, StaffEntity, UserEntity, CustomSuccessful } from '../../domain';
 import { bcryptAdapter } from '../../config';
 
 const prisma = new PrismaClient();
 
 export class StaffService {
-
-  constructor() { }
+  constructor() {}
 
   async getStaffs(paginationDto: PaginationDto) {
     const { page, limit } = paginationDto;
     try {
-
       const [total, staffs] = await Promise.all([
         prisma.staffs.count({ where: { state: true } }),
         prisma.staffs.findMany({
@@ -22,34 +20,34 @@ export class StaffService {
           take: limit,
           include: {
             user: true,
-            role: true
-          }
+            role: true,
+          },
         }),
       ]);
-      return {
-        page: page,
-        limit: limit,
-        total: total,
-        next: `/api/staff?page=${(page + 1)}&limit=${limit}`,
-        prev: (page - 1 > 0) ? `/api/staff?page=${(page - 1)}&limit=${limit}` : null,
-        staffs: staffs.map(staff => {
-          const { ...staffEntity } = StaffEntity.fromObject(staff);
-          return staffEntity;
-        })
-      };
+      return CustomSuccessful.response({
+        result: {
+          page: page,
+          limit: limit,
+          total: total,
+          next: `/api/staff?page=${page + 1}&limit=${limit}`,
+          prev: page - 1 > 0 ? `/api/staff?page=${page - 1}&limit=${limit}` : null,
+          staffs: staffs.map((staff) => {
+            const { ...staffEntity } = StaffEntity.fromObject(staff);
+            return staffEntity;
+          }),
+        },
+      });
     } catch (error) {
       throw CustomError.internalServer('Internal Server Error');
     }
   }
 
   async createStaff(createStaffDto: StaffDto, user: UserEntity) {
-
     try {
-
       const userExists = await prisma.users.findFirst({
         where: {
-          email: createStaffDto.email
-        }
+          email: createStaffDto.email,
+        },
       });
 
       let userId: number;
@@ -71,10 +69,10 @@ export class StaffService {
       const staffExists = await prisma.staffs.findFirst({
         where: {
           user: {
-            email: createStaffDto.email
+            email: createStaffDto.email,
           },
-          state: true
-        }
+          state: true,
+        },
       });
 
       if (staffExists) throw CustomError.badRequest('El staff ya existe');
@@ -82,19 +80,17 @@ export class StaffService {
       const staff = await prisma.staffs.create({
         data: {
           userId: userId,
-          roleId: createStaffDto.roleId
+          roleId: createStaffDto.roleId,
         },
         include: {
           user: true,
           role: true,
-        }
+        },
       });
-      console.log(staff)
-
+      console.log(staff);
 
       const { ...staffEntity } = StaffEntity.fromObject(staff);
-      return staffEntity;
-
+      return CustomSuccessful.response({ result: staffEntity });
     } catch (error) {
       throw CustomError.internalServer(`${error}`);
     }
@@ -106,33 +102,33 @@ export class StaffService {
       include: {
         user: true,
         role: true,
-      }
+      },
     });
     if (!staffExists) throw CustomError.badRequest('El staff no existe');
 
     try {
-
       await prisma.users.update({
         where: { id: staffExists.userId },
         data: {
           ...updateStaffDto,
           password: await bcryptAdapter.hash(staffExists.user.password),
-        }
+        },
       });
 
       const staff = await prisma.staffs.update({
         where: { id: staffId },
         data: {
           ...updateStaffDto,
-          roleId: updateStaffDto.roleId
+          roleId: updateStaffDto.roleId,
         },
         include: {
           user: true,
           role: true,
-        }
+        },
       });
 
-      return StaffEntity.fromObject(staff);
+      const { ...staffEntity } = StaffEntity.fromObject(staff);
+      return CustomSuccessful.response({ result: staffEntity });
     } catch (error) {
       throw CustomError.internalServer(`${error}`);
     }
@@ -150,11 +146,9 @@ export class StaffService {
           state: false,
         },
       });
-      return { msg: 'Staff eliminado' };
+      return CustomSuccessful.response({ message: 'Staff eliminado' });
     } catch (error) {
       throw CustomError.internalServer(`${error}`);
     }
   }
 }
-
-

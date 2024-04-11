@@ -44,11 +44,37 @@ model Users {
   image                   String?                     @db.VarChar(255)
   phone                   String                      @db.VarChar(255)
   password                String                      @db.VarChar(255)
+  codeValidation          String?                     @unique
   createdAt               DateTime                    @default(now())
   updatedAt               DateTime                    @updatedAt
-  staffs                  Staffs?
-  guests                  Guests?
-  speakers                Speakers?
+  availabilities          Availabilities[]
+  requests                Requests[]
+  staff                   Staffs?
+  guest                   Guests?
+  speaker                 Speakers?
+}
+
+model Availabilities {
+  id                      Int                         @id @default(autoincrement())
+  userId                  Int                         @db.Integer
+  start                   DateTime                    @db.Date
+  end                     DateTime                    @db.Date
+  createdAt               DateTime                    @default(now())
+  updatedAt               DateTime                    @updatedAt
+  user                    Users                       @relation(fields: [userId], references: [id])
+  requests                Requests[]
+}
+
+model Requests {
+  id                      Int                         @id @default(autoincrement())
+  userId                  Int                         @db.Integer
+  availabilityId          Int                         @db.Integer
+  accepted                Boolean                     @default(false)
+  state                   Boolean                     @default(true)
+  createdAt               DateTime                    @default(now())
+  updatedAt               DateTime                    @updatedAt
+  user                    Users                       @relation(fields: [userId], references: [id])
+  avalavility             Availabilities              @relation(fields: [availabilityId], references: [id])
 }
 
 model Staffs {
@@ -61,7 +87,7 @@ model Staffs {
   updatedAt               DateTime                    @updatedAt    
   user                    Users                       @relation(fields: [userId], references: [id])
   role                    Roles                       @relation(fields: [roleId], references: [id])
-  attendanceEvent         AttendanceEvents[]
+  attendanceEvents        AttendanceEvents[]
   attendanceActivities    AttendanceActivities[]
 }
 
@@ -73,7 +99,7 @@ model Guests {
   createdAt               DateTime                    @default(now())
   updatedAt               DateTime                    @updatedAt
   user                    Users                       @relation(fields: [userId], references: [id])
-  attendanceEvent         AttendanceEvents[]
+  attendanceEvents        AttendanceEvents[]
   attendanceActivities    AttendanceActivities[]
 }
 
@@ -90,6 +116,7 @@ model Speakers {
 model Events {
   id                      Int                         @id @default(autoincrement())
   name                    String                      @db.VarChar(255)
+  description             String                      @db.VarChar(255)
   price                   Int                         @db.Integer @default(0)
   start                   DateTime                    @db.Date
   end                     DateTime                    @db.Date
@@ -104,6 +131,7 @@ model Activities {
   id                      Int                         @id @default(autoincrement())
   eventId                 Int                         @db.Integer
   name                    String                      @db.VarChar(255)
+  description             String                      @db.VarChar(255)
   start                   DateTime                    @db.Date
   end                     DateTime                    @db.Date
   state                   Boolean                     @default(true)
@@ -121,7 +149,7 @@ model AttendanceEvents {
   createdAt               DateTime                    @default(now())
   event                   Events                      @relation(fields: [eventId], references: [id])
   staff                   Staffs                      @relation(fields: [staffId], references: [id])
-  guests                  Guests                      @relation(fields: [guestId], references: [id])
+  guest                   Guests                      @relation(fields: [guestId], references: [id])
 
 }
 
@@ -131,9 +159,9 @@ model AttendanceActivities {
   staffId                 Int                         @db.Integer
   guestId                 Int                         @db.Integer
   createdAt               DateTime                    @default(now())
-  Activitie               Activities                  @relation(fields: [activitiyId], references: [id])
+  Activity                Activities                  @relation(fields: [activitiyId], references: [id])
   staff                   Staffs                      @relation(fields: [staffId], references: [id])
-  guests                  Guests                      @relation(fields: [guestId], references: [id])
+  guest                   Guests                      @relation(fields: [guestId], references: [id])
 }
 
 model Business {

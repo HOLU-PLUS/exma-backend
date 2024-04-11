@@ -1,12 +1,9 @@
-import { UserDto } from "./user.dto";
+import { UserDto } from './user.dto';
 
 export class StaffDto extends UserDto {
   public readonly roleId: number;
 
-  constructor(
-    roleId: number,
-    userDto: UserDto
-  ) {
+  constructor(roleId: number, userDto: UserDto) {
     super(userDto.name, userDto.lastName, userDto.email);
     this.roleId = roleId;
   }

@@ -1,12 +1,9 @@
-import { UserDto } from "./user.dto";
+import { UserDto } from './user.dto';
 
 export class SpeakerDto extends UserDto {
   public readonly ci: string;
 
-  constructor(
-    ci: string,
-    userDto: UserDto
-  ) {
+  constructor(ci: string, userDto: UserDto) {
     super(userDto.name, userDto.lastName, userDto.email);
     this.ci = ci;
   }

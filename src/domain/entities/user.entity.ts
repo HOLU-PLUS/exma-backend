@@ -1,8 +1,7 @@
-import { GuestEntity, StaffEntity } from '..';
-import { CustomError } from '../errors/custom.error';
+import { GuestAuthEntity, SpeakerAuthEntity, SpeakerEntity, StaffAuthEntity, StaffEntity } from '..';
+import { CustomError } from '../responses/custom.error';
 
 export class UserEntity {
-
   constructor(
     public id: number,
     public name: string,
@@ -10,13 +9,15 @@ export class UserEntity {
     public email: string,
     public emailValidated?: boolean,
     public password?: string,
+    public codeValidation?: string,
     public image?: string,
-    public staffs?: StaffEntity,
-    public guests?: GuestEntity,
-  ) { }
+    public staff?: StaffAuthEntity,
+    public guest?: GuestAuthEntity,
+    public speaker?: SpeakerAuthEntity
+  ) {}
 
-  static fromObjectAuth(object: { [key: string]: any; }) {
-    const { id, name, lastName, email, emailValidated, password, image, staffs,guests } = object;
+  static fromObjectAuth(object: { [key: string]: any }) {
+    const { id, name, lastName, email, emailValidated, password, codeValidation, image, staff, guest, speaker } = object;
 
     if (!id) throw CustomError.badRequest('Falta id');
     if (!name) throw CustomError.badRequest('Falta el nombre');
@@ -25,13 +26,26 @@ export class UserEntity {
     if (!emailValidated) throw CustomError.badRequest('Falta la validación del correo');
     if (!password) throw CustomError.badRequest('Falta la contraseña');
 
-    const staffsEntity = staffs ? StaffEntity.fromObjectAuth(staffs) : undefined;
-    const guestEntity = guests ? GuestEntity.fromObject(guests) : undefined;
+    const staffAuthEntity = staff ? StaffAuthEntity.fromObject(staff) : undefined;
+    const guestAuthEntity = guest ? GuestAuthEntity.fromObject(guest) : undefined;
+    const speakerAuthEntity = speaker ? SpeakerAuthEntity.fromObject(speaker) : undefined;
 
-    return new UserEntity(id, name, lastName, email, emailValidated, password, image, staffsEntity, guestEntity);
+    return new UserEntity(
+      id,
+      name,
+      lastName,
+      email,
+      emailValidated,
+      password,
+      codeValidation,
+      image,
+      staffAuthEntity,
+      guestAuthEntity,
+      speakerAuthEntity
+    );
   }
 
-  static fromObject(object: { [key: string]: any; }) {
+  static fromObject(object: { [key: string]: any }) {
     const { id, name, lastName, email } = object;
 
     if (!id) throw CustomError.badRequest('Falta id');

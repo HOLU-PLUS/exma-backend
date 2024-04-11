@@ -1,20 +1,15 @@
-import { EventEntity, GuestEntity, StaffEntity } from "..";
+import { EventEntity, GuestEntity, SpeakerEntity, StaffEntity } from '..';
 
-export class AttendanceEvent {
-  constructor(
-    public id: number,
-    public evnent: EventEntity,
-    public staff: StaffEntity,
-    public guest: GuestEntity,
-  ) { }
+export class AttendanceEventEntity {
+  constructor(public id: number, public event?: EventEntity, public staff?: StaffEntity, public guest?: GuestEntity) {}
 
-  static fromObject(object: { [key: string]: any; }) {
-    const { id, event, staff, guest, } = object;
+  static fromObject(object: { [key: string]: any }) {
+    const { id, event, staff, guest } = object;
 
-    const eventEntity = EventEntity.fromObject(event);
-    const staffEntity = StaffEntity.fromObject(staff);
-    const guestEntity = GuestEntity.fromObject(guest);
+    const eventEntity = event ? EventEntity.fromObject(event) : undefined;
+    const staffEntity = staff ? StaffEntity.fromObject(staff) : undefined;
+    const guestEntity = guest ? GuestEntity.fromObject(guest) : undefined;
 
-    return new AttendanceEvent(id, eventEntity, staffEntity, guestEntity);
+    return new AttendanceEventEntity(id, eventEntity, staffEntity, guestEntity);
   }
 }

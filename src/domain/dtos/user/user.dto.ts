@@ -1,9 +1,5 @@
 export class UserDto {
-  constructor(
-    public readonly name: string,
-    public readonly lastName: string,
-    public readonly email: string,
-  ) { }
+  constructor(public readonly name: string, public readonly lastName: string, public readonly email: string) {}
 
   static body(object: { [key: string]: any }): [string?, UserDto?] {
     const { name, lastName, email } = object;

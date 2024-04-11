@@ -1,17 +1,15 @@
 import { PrismaClient } from '@prisma/client';
-import { SpeakerDto, CustomError, PaginationDto, UserEntity, TeacherEntity, } from '../../domain';
+import { SpeakerDto, CustomError, PaginationDto, UserEntity, SpeakerEntity, CustomSuccessful } from '../../domain';
 import { bcryptAdapter } from '../../config';
 
 const prisma = new PrismaClient();
 
 export class SpeakerService {
-
-  constructor() { }
+  constructor() {}
 
   async getSpeakers(paginationDto: PaginationDto) {
     const { page, limit } = paginationDto;
     try {
-
       const [total, speakers] = await Promise.all([
         prisma.speakers.count({ where: { state: true } }),
         prisma.speakers.findMany({
@@ -22,44 +20,44 @@ export class SpeakerService {
           take: limit,
           include: {
             user: true,
-          }
+          },
         }),
       ]);
-      return {
-        page: page,
-        limit: limit,
-        total: total,
-        next: `/api/teacher?page=${(page + 1)}&limit=${limit}`,
-        prev: (page - 1 > 0) ? `/api/teacher?page=${(page - 1)}&limit=${limit}` : null,
-        speakers: speakers.map(student => {
-          const { ...teacherEntity } = TeacherEntity.fromObject(student);
-          return teacherEntity;
-        })
-      };
+      return CustomSuccessful.response({
+        result: {
+          page: page,
+          limit: limit,
+          total: total,
+          next: `/api/teacher?page=${page + 1}&limit=${limit}`,
+          prev: page - 1 > 0 ? `/api/teacher?page=${page - 1}&limit=${limit}` : null,
+          speakers: speakers.map((student) => {
+            const { ...teacherEntity } = SpeakerEntity.fromObject(student);
+            return teacherEntity;
+          }),
+        },
+      });
     } catch (error) {
       throw CustomError.internalServer('Internal Server Error');
     }
   }
 
-  async createSpeaker(createTeacherDto: SpeakerDto, user: UserEntity) {
-
+  async createSpeaker(createSpeakerDto: SpeakerDto, user: UserEntity) {
     try {
-
       const userExists = await prisma.users.findFirst({
         where: {
-          email: createTeacherDto.email
-        }
+          email: createSpeakerDto.email,
+        },
       });
 
       let userId: number;
       if (!userExists) {
         const user = await prisma.users.create({
           data: {
-            name: createTeacherDto.name,
-            lastName: createTeacherDto.lastName,
-            email: createTeacherDto.email,
+            name: createSpeakerDto.name,
+            lastName: createSpeakerDto.lastName,
+            email: createSpeakerDto.email,
             phone: '5917373566',
-            password: await bcryptAdapter.hash(createTeacherDto.email), // Hasheamos la contraseña
+            password: await bcryptAdapter.hash(createSpeakerDto.email), // Hasheamos la contraseña
           },
         });
         userId = user.id;
@@ -70,29 +68,25 @@ export class SpeakerService {
       const staffExists = await prisma.speakers.findFirst({
         where: {
           user: {
-            email: createTeacherDto.email
+            email: createSpeakerDto.email,
           },
-          state: true
-        }
+          state: true,
+        },
       });
 
       if (staffExists) throw CustomError.badRequest('El staff ya existe');
 
-      const student = await prisma.speakers.create({
+      const speaker = await prisma.speakers.create({
         data: {
-          ci:createTeacherDto.ci,
+          ci: createSpeakerDto.ci,
           userId: userId,
         },
         include: {
           user: true,
-        }
+        },
       });
-      console.log(student)
-
-
-      const { ...teacherEntity } = TeacherEntity.fromObject(student);
-      return teacherEntity;
-
+      const { ...speakerEntity } = SpeakerEntity.fromObject(speaker);
+      return CustomSuccessful.response({ result: speakerEntity });
     } catch (error) {
       throw CustomError.internalServer(`${error}`);
     }
@@ -103,31 +97,31 @@ export class SpeakerService {
       where: { id: staffId },
       include: {
         user: true,
-      }
+      },
     });
     if (!studentExists) throw CustomError.badRequest('El staff no existe');
 
     try {
-
       await prisma.users.update({
         where: { id: studentExists.userId },
         data: {
           ...updateTeacherDto,
           password: await bcryptAdapter.hash(studentExists.user.password),
-        }
+        },
       });
 
-      const staff = await prisma.speakers.update({
+      const speaker = await prisma.speakers.update({
         where: { id: staffId },
         data: {
           ...updateTeacherDto,
         },
         include: {
           user: true,
-        }
+        },
       });
 
-      return TeacherEntity.fromObject(staff);
+      const { ...speakerEntity } = SpeakerEntity.fromObject(speaker);
+      return CustomSuccessful.response({ result: speakerEntity });
     } catch (error) {
       throw CustomError.internalServer(`${error}`);
     }
@@ -145,11 +139,9 @@ export class SpeakerService {
           state: false,
         },
       });
-      return { msg: 'Staff eliminado' };
+      return CustomSuccessful.response({ message: 'Ponente eliminado' });
     } catch (error) {
       throw CustomError.internalServer(`${error}`);
     }
   }
 }
-
-

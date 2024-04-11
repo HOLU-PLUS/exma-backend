@@ -1,41 +1,64 @@
 import { PrismaClient } from '@prisma/client';
-import { EventDto, CustomError, PaginationDto, EventEntity, UserEntity, AttendanceEventDto, AttendanceEvent } from '../../domain';
+import {
+  EventDto,
+  CustomError,
+  PaginationDto,
+  EventEntity,
+  UserEntity,
+  AttendanceEventDto,
+  CustomSuccessful,
+  AttendanceEventEntity,
+} from '../../domain';
 
 const prisma = new PrismaClient();
 
 export class EventService {
-
-  constructor() { }
+  constructor() {}
 
   async getEvents(paginationDto: PaginationDto) {
     const { page, limit } = paginationDto;
     try {
-
       const [total, events] = await Promise.all([
         prisma.events.count({ where: { state: true } }),
         prisma.events.findMany({
           skip: (page - 1) * limit,
           take: limit,
           where: {
-            state: true
+            state: true,
           },
           include: {
-            activities: true
-          }
+            activities: true,
+            attendanceEvents: {
+              include: {
+                guest: {
+                  include:{
+                    user:true
+                  }
+                },
+                staff: {
+                  include:{
+                    user:true
+                  }
+                },
+              },
+            },
+          },
         }),
       ]);
 
-      return {
-        page: page,
-        limit: limit,
-        total: total,
-        next: `/api/event?page=${(page + 1)}&limit=${limit}`,
-        prev: (page - 1 > 0) ? `/api/event?page=${(page - 1)}&limit=${limit}` : null,
-        events: events.map(event => {
-          const { ...eventEntity } = EventEntity.fromObject(event);
-          return eventEntity;
-        })
-      };
+      return CustomSuccessful.response({
+        result: {
+          page: page,
+          limit: limit,
+          total: total,
+          next: `/api/event?page=${page + 1}&limit=${limit}`,
+          prev: page - 1 > 0 ? `/api/event?page=${page - 1}&limit=${limit}` : null,
+          events: events.map((event) => {
+            const { ...eventEntity } = EventEntity.fromObject(event);
+            return eventEntity;
+          }),
+        },
+      });
     } catch (error) {
       throw CustomError.internalServer('Internal Server Error');
     }
@@ -46,82 +69,82 @@ export class EventService {
     const eventExists = await prisma.attendanceEvents.findFirst({
       where: {
         eventId: eventId,
-        guests: {
-          codeQr: qrGuest
-        }
+        guest: {
+          codeQr: qrGuest,
+        },
       },
-      include:{
-        guests:true
-      }
+      include: {
+        guest: true,
+      },
     });
     if (eventExists) throw CustomError.badRequest('El el registro ya existe');
-    console.log(eventExists)
     const guest = await prisma.guests.findFirst({
-      where:{
-        codeQr:qrGuest
-      }
-    })
-    if(!guest)throw CustomError.badRequest('Esta mal el QR');
+      where: {
+        codeQr: qrGuest,
+      },
+    });
+    if (!guest) throw CustomError.badRequest('No se pudo encontrar al invitado');
     try {
-      
-      const newAttendanceEvent = await prisma.attendanceEvents.create({
+      const attendanceEvent = await prisma.attendanceEvents.create({
         data: {
-          eventId:eventId,
+          eventId: eventId,
           guestId: guest!.id,
-          staffId: user.id
+          staffId: user.id,
         },
-        include:{
-          guests:true,
-          staff:true,
-          event:true,
-        }
+        include: {
+          guest: {
+            include:{
+              user:true
+            }
+          },
+          staff: {
+            include:{
+              user:true
+            }
+          },
+        },
       });
-      // const { ...attendanceEvent } = AttendanceEvent.fromObject(newAttendanceEvent!);
-      return newAttendanceEvent;
-
+      const { ...attendanceEventEntity } = AttendanceEventEntity.fromObject(attendanceEvent);
+      return CustomSuccessful.response({ result: attendanceEventEntity });
     } catch (error) {
-      console.log('ERRORRRRR');
-      console.log(error);
       throw CustomError.internalServer(`${error}`);
     }
   }
 
   async createEvent(createEventDto: EventDto, user: UserEntity) {
-    const { name, price, start, end, activities } = createEventDto;
+    const { name, activities } = createEventDto;
     const eventExists = await prisma.events.findFirst({ where: { name: name } });
     if (eventExists) throw CustomError.badRequest('El evento ya existe');
 
     try {
       const event = await prisma.events.create({
         data: {
-          name,
-          price,
-          start,
-          end,
-        },
-      });
-      if (activities && activities.length > 0) {
-        await prisma.events.update({
-          where: { id: event.id },
-          data: {
-            activities: {
-              connect: activities.map(activity => ({ id: activity })),
-            },
+          ...createEventDto,
+          activities: {
+            create: activities,
           },
-        });
-      }
-      const eventCreate = await prisma.events.findFirst({
-        where: {
-          id: event.id
         },
         include: {
-          activities: true
-        }
+          activities: true,
+          attendanceEvents: {
+            include: {
+              guest: {
+                include:{
+                  user:true
+                }
+              },
+              staff: {
+                include:{
+                  user:true
+                }
+              },
+            },
+          },
+        },
       });
 
-      const { ...eventEntity } = EventEntity.fromObject(eventCreate!);
-      return eventEntity;
-
+      const { ...eventEntity } = EventEntity.fromObject(event);
+      return CustomSuccessful.response({ result: eventEntity });
     } catch (error) {
       throw CustomError.internalServer(`${error}`);
     }
@@ -131,18 +154,15 @@ export class EventService {
     const { name, activities } = createEventDto;
     const existingEventWithName = await prisma.events.findFirst({
       where: {
-        AND: [
-          { name: name },
-          { NOT: { id: eventId } },
-        ],
+        AND: [{ name: name }, { NOT: { id: eventId } }],
       },
     });
     if (existingEventWithName) throw CustomError.badRequest('Ya existe un evento con el mismo nombre');
     const eventExists = await prisma.events.findFirst({
       where: { id: eventId },
       include: {
-        activities: true
-      }
+        activities: true,
+      },
     });
     if (!eventExists) throw CustomError.badRequest('El evento no existe');
 
@@ -157,10 +177,11 @@ export class EventService {
           },
         },
         include: {
-          activities: true
-        }
+          activities: true,
+        },
       });
-      return EventEntity.fromObject(event);
+      const { ...eventEntity } = EventEntity.fromObject(event);
+      return CustomSuccessful.response({ result: eventEntity });
     } catch (error) {
       throw CustomError.internalServer(`${error}`);
     }
@@ -170,8 +191,8 @@ export class EventService {
     const eventExists = await prisma.events.findFirst({
       where: { id: eventId },
       include: {
-        activities: true
-      }
+        activities: true,
+      },
     });
     if (!eventExists) throw CustomError.badRequest('El evento no existe');
     try {
@@ -179,20 +200,14 @@ export class EventService {
         where: { id: eventId },
         data: {
           state: false,
-          activities: {
-            // disconnect: roleExists.permissions.map(permission => ({ id: permission.id })),
-          },
         },
         include: {
-          activities: true
-        }
+          activities: true,
+        },
       });
-
-      return { msg: 'Evento eliminado' };
+      return CustomSuccessful.response({ message: 'Evento eliminado' });
     } catch (error) {
       throw CustomError.internalServer(`${error}`);
     }
   }
 }
-
-

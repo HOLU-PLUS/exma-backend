@@ -30,10 +30,36 @@ CREATE TABLE "Users" (
     "image" VARCHAR(255),
     "phone" VARCHAR(255) NOT NULL,
     "password" VARCHAR(255) NOT NULL,
+    "codeValidation" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "Users_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Availabilities" (
+    "id" SERIAL NOT NULL,
+    "userId" INTEGER NOT NULL,
+    "start" DATE NOT NULL,
+    "end" DATE NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Availabilities_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Requests" (
+    "id" SERIAL NOT NULL,
+    "userId" INTEGER NOT NULL,
+    "availabilityId" INTEGER NOT NULL,
+    "accepted" BOOLEAN NOT NULL DEFAULT false,
+    "state" BOOLEAN NOT NULL DEFAULT true,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Requests_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -77,6 +103,7 @@ CREATE TABLE "Speakers" (
 CREATE TABLE "Events" (
     "id" SERIAL NOT NULL,
     "name" VARCHAR(255) NOT NULL,
+    "description" VARCHAR(255) NOT NULL,
     "price" INTEGER NOT NULL DEFAULT 0,
     "start" DATE NOT NULL,
     "end" DATE NOT NULL,
@@ -92,6 +119,7 @@ CREATE TABLE "Activities" (
     "id" SERIAL NOT NULL,
     "eventId" INTEGER NOT NULL,
     "name" VARCHAR(255) NOT NULL,
+    "description" VARCHAR(255) NOT NULL,
     "start" DATE NOT NULL,
     "end" DATE NOT NULL,
     "state" BOOLEAN NOT NULL DEFAULT true,
@@ -143,6 +171,9 @@ CREATE TABLE "_PermissionsToRoles" (
 CREATE UNIQUE INDEX "Users_email_key" ON "Users"("email");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "Users_codeValidation_key" ON "Users"("codeValidation");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "Staffs_userId_key" ON "Staffs"("userId");
 
 -- CreateIndex
@@ -158,10 +189,22 @@ CREATE UNIQUE INDEX "Speakers_userId_key" ON "Speakers"("userId");
 CREATE UNIQUE INDEX "Speakers_ci_key" ON "Speakers"("ci");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "Activities_name_key" ON "Activities"("name");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "_PermissionsToRoles_AB_unique" ON "_PermissionsToRoles"("A", "B");
 
 -- CreateIndex
 CREATE INDEX "_PermissionsToRoles_B_index" ON "_PermissionsToRoles"("B");
+
+-- AddForeignKey
+ALTER TABLE "Availabilities" ADD CONSTRAINT "Availabilities_userId_fkey" FOREIGN KEY ("userId") REFERENCES "Users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Requests" ADD CONSTRAINT "Requests_userId_fkey" FOREIGN KEY ("userId") REFERENCES "Users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Requests" ADD CONSTRAINT "Requests_availabilityId_fkey" FOREIGN KEY ("availabilityId") REFERENCES "Availabilities"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Staffs" ADD CONSTRAINT "Staffs_userId_fkey" FOREIGN KEY ("userId") REFERENCES "Users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

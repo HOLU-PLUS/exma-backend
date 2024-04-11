@@ -1,17 +1,25 @@
-import { UserEntity } from "..";
+import { UserEntity } from '..';
 
-export class TeacherEntity {
-  constructor(
-    public id: number,
-    public ci: string,
-    public user?: UserEntity,
-  ) { }
+export class SpeakerAuthEntity {
+  constructor(public id: number, public codeQr?: string) {}
+  static fromObject(object: { [key: string]: any }) {
+    const { id, codeQr } = object;
+    return new SpeakerAuthEntity(id, codeQr);
+  }
+}
 
-  static fromObject(object: { [key: string]: any; }) {
+export class SpeakerEntity extends UserEntity {
+  public readonly ci: string;
+
+  constructor(id: number, ci: string, user: UserEntity) {
+    super(user.id, user.name, user.lastName, user.email);
+    this.id = id;
+    this.ci = ci;
+  }
+  static fromObject(object: { [key: string]: any }) {
     const { id, ci, user } = object;
 
-    const userEntity = user ? UserEntity.fromObject(user) : undefined;
-
-    return new TeacherEntity(id, ci, userEntity);
+    const userEntity = UserEntity.fromObject(user);
+    return new SpeakerEntity(id, ci, userEntity);
   }
 }

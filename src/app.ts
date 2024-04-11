@@ -1,5 +1,5 @@
 import { envs } from './config/envs';
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient } from '@prisma/client';
 import { AppRoutes } from './presentation/routes';
 import { Server } from './server';
 

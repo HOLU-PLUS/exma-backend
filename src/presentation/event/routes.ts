@@ -5,7 +5,6 @@ import { EventService } from '../services';
 
 export class EventRoutes {
   static get routes(): Router {
-
     const router = Router();
     const eventService = new EventService();
     const controller = new EventController(eventService);
@@ -15,8 +14,7 @@ export class EventRoutes {
     router.post('/', [AuthMiddleware.validateJWT], controller.createEvent);
     router.post('/attendance', [AuthMiddleware.validateJWT], controller.attendanceEvent);
     router.put('/:id', [AuthMiddleware.validateJWT], controller.updateEvent);
-    router.delete('/:id', [AuthMiddleware.validateJWT], controller.deleteEvent)
+    router.delete('/:id', [AuthMiddleware.validateJWT], controller.deleteEvent);
     return router;
   }
 }
-

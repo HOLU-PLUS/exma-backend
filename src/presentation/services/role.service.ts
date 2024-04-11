@@ -1,41 +1,41 @@
 import { PrismaClient } from '@prisma/client';
-import { RoleDto, CustomError, PaginationDto, EventEntity, UserEntity } from '../../domain';
+import { RoleDto, CustomError, PaginationDto, EventEntity, UserEntity, CustomSuccessful } from '../../domain';
 
 const prisma = new PrismaClient();
 
 export class RoleService {
-
-  constructor() { }
+  constructor() {}
 
   async getRoles(paginationDto: PaginationDto) {
     const { page, limit } = paginationDto;
     try {
-
       const [total, roles] = await Promise.all([
         prisma.roles.count({ where: { state: true } }),
         prisma.roles.findMany({
           skip: (page - 1) * limit,
           take: limit,
-          where:{
-            state:true
+          where: {
+            state: true,
           },
           include: {
-            permissions: true
-          }
+            permissions: true,
+          },
         }),
       ]);
 
-      return {
-        page: page,
-        limit: limit,
-        total: total,
-        next: `/api/role?page=${(page + 1)}&limit=${limit}`,
-        prev: (page - 1 > 0) ? `/api/role?page=${(page - 1)}&limit=${limit}` : null,
-        roles: roles.map(role => {
-          const { ...roleEntity } = EventEntity.fromObject(role);
-          return roleEntity;
-        })
-      };
+      return CustomSuccessful.response({
+        result: {
+          page: page,
+          limit: limit,
+          total: total,
+          next: `/api/role?page=${page + 1}&limit=${limit}`,
+          prev: page - 1 > 0 ? `/api/role?page=${page - 1}&limit=${limit}` : null,
+          roles: roles.map((role) => {
+            const { ...roleEntity } = EventEntity.fromObject(role);
+            return roleEntity;
+          }),
+        },
+      });
     } catch (error) {
       throw CustomError.internalServer('Internal Server Error');
     }
@@ -50,31 +50,14 @@ export class RoleService {
       const role = await prisma.roles.create({
         data: {
           name: name,
-        },
-      });
-      // Asociar los permisos al nuevo rol
-      if (permissions && permissions.length > 0) {
-        await prisma.roles.update({
-          where: { id: role.id },
-          data: {
-            permissions: {
-              connect: permissions.map(permissionId => ({ id: permissionId })),
-            },
+          permissions: {
+            connect: permissions.map((permissionId) => ({ id: permissionId })),
           },
-        });
-      }
-      const roleCreate = await prisma.roles.findFirst({
-        where: {
-          id: role.id
         },
-        include: {
-          permissions: true
-        }
       });
 
-      const { ...roleEntity } = EventEntity.fromObject(roleCreate!);
-      return roleEntity;
-
+      const { ...roleEntity } = EventEntity.fromObject(role);
+      return CustomSuccessful.response({ result: roleEntity });
     } catch (error) {
       throw CustomError.internalServer(`${error}`);
     }
@@ -84,18 +67,15 @@ export class RoleService {
     const { name, permissions } = createRoleDto;
     const existingRoleWithName = await prisma.roles.findFirst({
       where: {
-        AND: [
-          { name: name },
-          { NOT: { id: roleId } },
-        ],
+        AND: [{ name: name }, { NOT: { id: roleId } }],
       },
     });
     if (existingRoleWithName) throw CustomError.badRequest('Ya existe un rol con el mismo nombre');
     const roleExists = await prisma.roles.findFirst({
       where: { id: roleId },
       include: {
-        permissions: true
-      }
+        permissions: true,
+      },
     });
     if (!roleExists) throw CustomError.badRequest('El rol no existe');
 
@@ -105,15 +85,16 @@ export class RoleService {
         data: {
           name,
           permissions: {
-            disconnect: roleExists.permissions.map(permission => ({ id: permission.id })),
-            connect: permissions.map(permissionId => ({ id: permissionId }))
+            disconnect: roleExists.permissions.map((permission) => ({ id: permission.id })),
+            connect: permissions.map((permissionId) => ({ id: permissionId })),
           },
         },
         include: {
-          permissions: true
-        }
+          permissions: true,
+        },
       });
-      return EventEntity.fromObject(role);
+      const { ...roleEntity } = EventEntity.fromObject(role);
+      return CustomSuccessful.response({ result: roleEntity });
     } catch (error) {
       throw CustomError.internalServer(`${error}`);
     }
@@ -123,8 +104,8 @@ export class RoleService {
     const roleExists = await prisma.roles.findFirst({
       where: { id: roleId },
       include: {
-        permissions: true
-      }
+        permissions: true,
+      },
     });
     if (!roleExists) throw CustomError.badRequest('El rol no existe');
     try {
@@ -133,19 +114,16 @@ export class RoleService {
         data: {
           state: false,
           permissions: {
-            disconnect: roleExists.permissions.map(permission => ({ id: permission.id })),
+            disconnect: roleExists.permissions.map((permission) => ({ id: permission.id })),
           },
         },
         include: {
-          permissions: true
-        }
+          permissions: true,
+        },
       });
-
-      return { msg: 'Rol eliminado' };
+      return CustomSuccessful.response({ message: 'Rol eliminado' });
     } catch (error) {
       throw CustomError.internalServer(`${error}`);
     }
   }
 }
-
-

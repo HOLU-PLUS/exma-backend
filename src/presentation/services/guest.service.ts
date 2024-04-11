@@ -1,18 +1,16 @@
 import { PrismaClient } from '@prisma/client';
-import { GuestDto, CustomError, PaginationDto, UserEntity, GuestEntity, } from '../../domain';
+import { GuestDto, CustomError, PaginationDto, UserEntity, SpeakerEntity, CustomSuccessful, GuestEntity } from '../../domain';
 import { bcryptAdapter } from '../../config';
 import { v4 as uuidv4 } from 'uuid';
 
 const prisma = new PrismaClient();
 
 export class GuestService {
-
-  constructor() { }
+  constructor() {}
 
   async getGuests(paginationDto: PaginationDto) {
     const { page, limit } = paginationDto;
     try {
-
       const [total, students] = await Promise.all([
         prisma.guests.count({ where: { state: true } }),
         prisma.guests.findMany({
@@ -23,33 +21,33 @@ export class GuestService {
           take: limit,
           include: {
             user: true,
-          }
+          },
         }),
       ]);
-      return {
-        page: page,
-        limit: limit,
-        total: total,
-        next: `/api/student?page=${(page + 1)}&limit=${limit}`,
-        prev: (page - 1 > 0) ? `/api/student?page=${(page - 1)}&limit=${limit}` : null,
-        students: students.map(student => {
-          const { ...studentEntity } = GuestEntity.fromObject(student);
-          return studentEntity;
-        })
-      };
+      return CustomSuccessful.response({
+        result: {
+          page: page,
+          limit: limit,
+          total: total,
+          next: `/api/student?page=${page + 1}&limit=${limit}`,
+          prev: page - 1 > 0 ? `/api/student?page=${page - 1}&limit=${limit}` : null,
+          students: students.map((student) => {
+            const { ...studentEntity } = SpeakerEntity.fromObject(student);
+            return studentEntity;
+          }),
+        },
+      });
     } catch (error) {
       throw CustomError.internalServer('Internal Server Error');
     }
   }
 
   async createGuest(createStudentDto: GuestDto, user: UserEntity) {
-
     try {
-
       const userExists = await prisma.users.findFirst({
         where: {
-          email: createStudentDto.email
-        }
+          email: createStudentDto.email,
+        },
       });
 
       let userId: number;
@@ -61,7 +59,7 @@ export class GuestService {
             email: createStudentDto.email,
             phone: '5917373566',
             password: await bcryptAdapter.hash(createStudentDto.email), // Hasheamos la contraseña
-            emailValidated:true,
+            emailValidated: true,
           },
         });
         userId = user.id;
@@ -72,29 +70,26 @@ export class GuestService {
       const staffExists = await prisma.guests.findFirst({
         where: {
           user: {
-            email: createStudentDto.email
+            email: createStudentDto.email,
           },
-          state: true
-        }
+          state: true,
+        },
       });
 
       if (staffExists) throw CustomError.badRequest('La cuenta ya existe');
 
       const guest = await prisma.guests.create({
         data: {
-          codeQr:uuidv4(),
+          codeQr: uuidv4(),
           userId: userId,
         },
         include: {
           user: true,
-        }
+        },
       });
-      console.log(guest)
 
-
-      const { ...studentEntity } = GuestEntity.fromObject(guest);
-      return studentEntity;
-
+      const { ...guestEntity } = GuestEntity.fromObject(guest);
+      return CustomSuccessful.response({ result: guestEntity });
     } catch (error) {
       throw CustomError.internalServer(`${error}`);
     }
@@ -105,32 +100,32 @@ export class GuestService {
       where: { id: studentId },
       include: {
         user: true,
-      }
+      },
     });
     if (!studentExists) throw CustomError.badRequest('El estudiante no existe');
 
     try {
-
       await prisma.users.update({
         where: { id: studentExists.userId },
         data: {
           ...updateStudentDto,
           password: await bcryptAdapter.hash(studentExists.user.password),
-        }
+        },
       });
 
-      const staff = await prisma.guests.update({
+      const guest = await prisma.guests.update({
         where: { id: studentId },
         data: {
-          codeQr:'asdasds',
+          codeQr: 'asdasds',
           ...updateStudentDto,
         },
         include: {
           user: true,
-        }
+        },
       });
 
-      return GuestEntity.fromObject(staff);
+      const { ...guestEntity } = GuestEntity.fromObject(guest);
+      return CustomSuccessful.response({ result: guestEntity });
     } catch (error) {
       throw CustomError.internalServer(`${error}`);
     }
@@ -148,11 +143,9 @@ export class GuestService {
           state: false,
         },
       });
-      return { msg: 'estudiante eliminado' };
+      return CustomSuccessful.response({ message: 'Invitado eliminado' });
     } catch (error) {
       throw CustomError.internalServer(`${error}`);
     }
   }
 }
-
-

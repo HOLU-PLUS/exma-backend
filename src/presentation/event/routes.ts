@@ -11,6 +11,7 @@ export class EventRoutes {
 
     // rutas
     router.get('/', [AuthMiddleware.validateJWT], controller.getEvents);
+    router.get('/all-guest/:id',[AuthMiddleware.validateJWT],controller.getAllGuest);
     router.post('/', [AuthMiddleware.validateJWT], controller.createEvent);
     router.post('/attendance', [AuthMiddleware.validateJWT], controller.attendance);
     router.put('/:id', [AuthMiddleware.validateJWT], controller.updateEvent);

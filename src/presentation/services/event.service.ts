@@ -63,6 +63,49 @@ export class EventService {
       throw CustomError.internalServer('Internal Server Error');
     }
   }
+  async getAllGuest(paginationDto: PaginationDto,user: UserEntity, eventId: number){
+    const { page, limit } = paginationDto;
+    try {
+      const [total, attendances] = await Promise.all([
+        prisma.attendances.count({ where: { eventId:eventId } }),
+        prisma.attendances.findMany({
+          skip: (page - 1) * limit,
+          take: limit,
+          where: {
+            eventId:eventId
+          },
+          include: {
+              guest: {
+                include:{
+                  user:true
+                }
+              },
+              staff: {
+                include:{
+                  user:true
+                }
+              },
+          },
+        }),
+      ]);
+
+      return CustomSuccessful.response({
+        result: {
+          page: page,
+          limit: limit,
+          total: total,
+          next: `/api/all-guest?page=${page + 1}&limit=${limit}`,
+          prev: page - 1 > 0 ? `/api/all-guest?page=${page - 1}&limit=${limit}` : null,
+          attendances: attendances.map((event) => {
+            const { ...attendanceEntity } = AttendanceEntity.fromObject(event);
+            return attendanceEntity;
+          }),
+        },
+      });
+    } catch (error) {
+      throw CustomError.internalServer('Internal Server Error');
+    }
+  }
 
   async createAttendance(createAttendanceDto: AttendanceDto, user: UserEntity) {
     const { eventId, qrGuest } = createAttendanceDto;

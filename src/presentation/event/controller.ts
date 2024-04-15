@@ -24,6 +24,16 @@ export class EventController {
       .catch((error) => this.handleError(error, res));
   };
 
+  getAllGuest = async (req: Request, res: Response) => {
+    const { page = 1, limit = 10 } = req.query;
+    const [error, paginationDto] = PaginationDto.create(+page, +limit);
+    if (error) return res.status(400).json({ error });
+    this.eventService
+      .getAllGuest(paginationDto!,req.body.user, parseInt(req.params.id))
+      .then((event) => res.status(201).json(event))
+      .catch((error) => this.handleError(error, res));
+  };
+
   createEvent = async (req: Request, res: Response) => {
     const [error, createEventDto] = await EventDto.body(req.body);
     if (error) return res.status(400).json({ error });

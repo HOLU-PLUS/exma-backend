@@ -15,11 +15,11 @@ export class EventDto {
 
     if (!name) return ['El nombre es obligatorio'];
     if (!description) return ['La descripción es obligatorio'];
-    if (!price) return ['El precio es obligatorio'];
+    // if (!price) return ['El precio es obligatorio'];
     if (!start) return ['La fecha inicio es obligatorio'];
     if (!end) return ['La fecha fin es obligatorio'];
     if (!activities) return ['Los permisos son obligatorios'];
-    if (activities.length == 0) return ['Debe ver almenos un permiso'];
+    if (activities.length == 0) return ['Debe ver almenos una actividad'];
     for (const activity of activities) {
       const [error] = await ActivityDto.body(activity);
       if (error) return [error];

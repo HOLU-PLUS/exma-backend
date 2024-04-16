@@ -29,7 +29,7 @@ export class GuestController {
     if (error) return res.status(400).json({ error });
 
     this.guestService
-      .createGuest(createStudentDto!, req.body.user)
+      .createGuest(createStudentDto!)
       .then((guest) => res.status(201).json(guest))
       .catch((error) => this.handleError(error, res));
   };

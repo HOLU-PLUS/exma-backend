@@ -1,12 +1,22 @@
 import { Router } from 'express';
 import { GuestController } from './controller';
 import { AuthMiddleware } from '../middlewares/auth.middleware';
-import { GuestService } from '../services';
+import { AuthService, EmailService, GuestService } from '../services';
+import { envs } from '../../config';
 
 export class GuestRoutes {
   static get routes(): Router {
     const router = Router();
-    const guestService = new GuestService();
+    
+    const emailService = new EmailService(
+      envs.MAILER_SERVICE,
+      envs.MAILER_EMAIL,
+      envs.MAILER_SECRET_KEY,
+      envs.SEND_EMAIL
+    );
+
+    const authService = new AuthService(emailService);
+    const guestService = new GuestService(authService);
     const controller = new GuestController(guestService);
 
     // rutas

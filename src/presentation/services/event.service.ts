@@ -1,14 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import {
-  EventDto,
-  CustomError,
-  PaginationDto,
-  EventEntity,
-  UserEntity,
-  AttendanceDto,
-  CustomSuccessful,
-  AttendanceEntity,
-} from '../../domain';
+import { EventDto, CustomError, PaginationDto, EventEntity, UserEntity, AttendanceDto, CustomSuccessful, AttendanceEntity } from '../../domain';
 
 const prisma = new PrismaClient();
 
@@ -31,14 +22,14 @@ export class EventService {
             attendances: {
               include: {
                 guest: {
-                  include:{
-                    user:true
-                  }
+                  include: {
+                    user: true,
+                  },
                 },
                 staff: {
-                  include:{
-                    user:true
-                  }
+                  include: {
+                    user: true,
+                  },
                 },
               },
             },
@@ -63,28 +54,28 @@ export class EventService {
       throw CustomError.internalServer('Internal Server Error');
     }
   }
-  async getAllGuest(paginationDto: PaginationDto,user: UserEntity, eventId: number){
+  async getAllGuest(paginationDto: PaginationDto, user: UserEntity, eventId: number) {
     const { page, limit } = paginationDto;
     try {
       const [total, attendances] = await Promise.all([
-        prisma.attendances.count({ where: { eventId:eventId } }),
+        prisma.attendances.count({ where: { eventId: eventId } }),
         prisma.attendances.findMany({
           skip: (page - 1) * limit,
           take: limit,
           where: {
-            eventId:eventId
+            eventId: eventId,
           },
           include: {
-              guest: {
-                include:{
-                  user:true
-                }
+            guest: {
+              include: {
+                user: true,
               },
-              staff: {
-                include:{
-                  user:true
-                }
+            },
+            staff: {
+              include: {
+                user: true,
               },
+            },
           },
         }),
       ]);
@@ -136,14 +127,14 @@ export class EventService {
         },
         include: {
           guest: {
-            include:{
-              user:true
-            }
+            include: {
+              user: true,
+            },
           },
           staff: {
-            include:{
-              user:true
-            }
+            include: {
+              user: true,
+            },
           },
         },
       });
@@ -155,7 +146,7 @@ export class EventService {
   }
 
   async createEvent(createEventDto: EventDto, user: UserEntity) {
-    const { name, activities } = createEventDto;
+    const { name, price, activities } = createEventDto;
     const eventExists = await prisma.events.findFirst({ where: { name: name } });
     if (eventExists) throw CustomError.badRequest('El evento ya existe');
 
@@ -163,6 +154,7 @@ export class EventService {
       const event = await prisma.events.create({
         data: {
           ...createEventDto,
+          price: parseFloat(price.toString()),
           activities: {
             create: activities,
           },
@@ -172,14 +164,14 @@ export class EventService {
           attendances: {
             include: {
               guest: {
-                include:{
-                  user:true
-                }
+                include: {
+                  user: true,
+                },
               },
               staff: {
-                include:{
-                  user:true
-                }
+                include: {
+                  user: true,
+                },
               },
             },
           },
@@ -194,7 +186,7 @@ export class EventService {
   }
 
   async updateEvent(createEventDto: EventDto, user: UserEntity, eventId: number) {
-    const { name, activities } = createEventDto;
+    const { name, price, activities } = createEventDto;
     const existingEventWithName = await prisma.events.findFirst({
       where: {
         AND: [{ name: name }, { NOT: { id: eventId } }],
@@ -214,6 +206,7 @@ export class EventService {
         where: { id: eventId },
         data: {
           name,
+          price: parseFloat(price.toString()),
           activities: {
             // disconnect: roleExists.permissions.map(permission => ({ id: permission.id })),
             // connect: permissions.map(permissionId => ({ id: permissionId }))

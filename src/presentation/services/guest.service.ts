@@ -1,12 +1,13 @@
 import { PrismaClient } from '@prisma/client';
 import { GuestDto, CustomError, PaginationDto, UserEntity, SpeakerEntity, CustomSuccessful, GuestEntity } from '../../domain';
-import { bcryptAdapter } from '../../config';
+import { JwtAdapter, bcryptAdapter } from '../../config';
 import { v4 as uuidv4 } from 'uuid';
+import { AuthService } from '.';
 
 const prisma = new PrismaClient();
 
 export class GuestService {
-  constructor() {}
+  constructor(public readonly authService: AuthService) {}
 
   async getGuests(paginationDto: PaginationDto) {
     const { page, limit } = paginationDto;
@@ -42,7 +43,7 @@ export class GuestService {
     }
   }
 
-  async createGuest(createStudentDto: GuestDto, user: UserEntity) {
+  async createGuest(createStudentDto: GuestDto) {
     try {
       const userExists = await prisma.users.findFirst({
         where: {
@@ -58,8 +59,7 @@ export class GuestService {
             lastName: createStudentDto.lastName,
             email: createStudentDto.email,
             phone: '5917373566',
-            password: await bcryptAdapter.hash(createStudentDto.email), // Hasheamos la contraseña
-            emailValidated: true,
+            password: await bcryptAdapter.hash(createStudentDto.email),
           },
         });
         userId = user.id;
@@ -67,7 +67,7 @@ export class GuestService {
         userId = userExists.id;
       }
 
-      const staffExists = await prisma.guests.findFirst({
+      const guestExists = await prisma.guests.findFirst({
         where: {
           user: {
             email: createStudentDto.email,
@@ -76,7 +76,7 @@ export class GuestService {
         },
       });
 
-      if (staffExists) throw CustomError.badRequest('La cuenta ya existe');
+      if (guestExists) throw CustomError.badRequest('La cuenta ya existe');
 
       const guest = await prisma.guests.create({
         data: {
@@ -87,7 +87,20 @@ export class GuestService {
           user: true,
         },
       });
-
+      if (!guest.user.emailValidated) {
+        const token = await JwtAdapter.generateToken({ id: guest.user.id });
+        if (!token) throw CustomError.internalServer('Error al crear la llave');
+        const codeValidation = await this.authService.sendEmailValidationLink(guest.user.email);
+        await prisma.users.update({
+          where: { id: guest.user.id },
+          data: { codeValidation: await bcryptAdapter.hash(codeValidation) },
+        });
+        return CustomSuccessful.response({
+          statusCode: 1,
+          message: 'Es necesario validar la cuenta',
+          result: { token },
+        });
+      }
       const { ...guestEntity } = GuestEntity.fromObject(guest);
       return CustomSuccessful.response({ result: guestEntity });
     } catch (error) {

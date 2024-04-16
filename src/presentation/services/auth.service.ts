@@ -60,19 +60,32 @@ export class AuthService {
 
     const isMatching = bcryptAdapter.compare(loginUserDto.password, user.password);
     if (!isMatching) throw CustomError.badRequest('La Contraseña no es valida');
-
-    const { emailValidated, password, ...userEntity } = UserEntity.fromObjectAuth(user);
-
     const token = await JwtAdapter.generateToken({
       id: user.id,
     });
     if (!token) throw CustomError.internalServer('Error al crear la llave');
 
+    if (!user.emailValidated) {
+      const codeValidation = await this.sendEmailValidationLink(loginUserDto.email);
+      await prisma.users.update({
+        where: { id: user.id },
+        data: { codeValidation: await bcryptAdapter.hash(codeValidation) },
+      });
+
+      return CustomSuccessful.response({
+        statusCode: 1,
+        message: 'Es necesario validar la cuenta',
+        result: { token },
+      });
+    }
+    const { emailValidated, password, ...userEntity } = UserEntity.fromObjectAuth(user);
+
     return {
       user: userEntity,
       token: token,
     };
-  };
+  }
+
   public validateEmail = async (validateUserDto: ValidateUserDto, user: UserEntity) => {
     try {
       const isMatching = bcryptAdapter.compare(validateUserDto.code, user.codeValidation!);
@@ -87,7 +100,8 @@ export class AuthService {
       throw CustomError.internalServer(`${error}`);
     }
   };
-  private sendEmailValidationLink = async (email: string) => {
+
+  public sendEmailValidationLink = async (email: string) => {
     const codeg = uuidv4().substring(0, 4);
     let verificationLink = `código: ${codeg}`;
     const html = `
@@ -97,7 +111,6 @@ export class AuthService {
       <h1>${verificationLink}</h1>
     `;
     const options = {
-      // from: `"CENTRO DE ESTUDIANTES" < ${process.env.USERGMAIL} > `,
       to: email,
       subject: 'Código de verificación',
       htmlBody: html,

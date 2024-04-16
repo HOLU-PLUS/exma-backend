@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { envs } from '../../config/envs';
 import { AuthController } from './controller';
 import { AuthService, EmailService } from './../services';
-import { AuthMiddleware } from '../middlewares/auth.middleware';
+import { AuthMiddleware, ValidationMiddleware } from '../middlewares/auth.middleware';
 
 export class Authroutes {
 
@@ -25,7 +25,7 @@ export class Authroutes {
     router.post('/', controller.loginUser );
     router.post('/guest', controller.loginGuest );
     
-    router.post('/validate-email',[AuthMiddleware.validateJWT],controller.validateEmail);
+    router.post('/validate-email',[ValidationMiddleware.validateJWT],controller.validateEmail);
 
     return router;
   }

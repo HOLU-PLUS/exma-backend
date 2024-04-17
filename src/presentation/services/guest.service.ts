@@ -12,7 +12,7 @@ export class GuestService {
   async getGuests(paginationDto: PaginationDto) {
     const { page, limit } = paginationDto;
     try {
-      const [total, students] = await Promise.all([
+      const [total, guests] = await Promise.all([
         prisma.guests.count({ where: { state: true } }),
         prisma.guests.findMany({
           where: {
@@ -30,15 +30,32 @@ export class GuestService {
           page: page,
           limit: limit,
           total: total,
-          next: `/api/student?page=${page + 1}&limit=${limit}`,
-          prev: page - 1 > 0 ? `/api/student?page=${page - 1}&limit=${limit}` : null,
-          students: students.map((student) => {
-            const { ...studentEntity } = SpeakerEntity.fromObject(student);
-            return studentEntity;
+          next: `/api/guest?page=${page + 1}&limit=${limit}`,
+          prev: page - 1 > 0 ? `/api/guest?page=${page - 1}&limit=${limit}` : null,
+          students: guests.map((guest) => {
+            const { ...guestEntity } = GuestEntity.fromObject(guest);
+            return guestEntity;
           }),
         },
       });
     } catch (error) {
+      throw CustomError.internalServer('Internal Server Error');
+    }
+  }
+
+  async getGuest(codeQr: string) {
+    try {
+      const guest = await prisma.guests.findFirst({
+        where: { codeQr },
+        include: {
+          user: true,
+        },
+      });
+      if (!guest) throw CustomError.badRequest('No existe el invitado');
+      const { ...guestEntity } = GuestEntity.fromObject(guest);
+      return CustomSuccessful.response({ result: guestEntity });
+    } catch (error) {
+      console.log(error)
       throw CustomError.internalServer('Internal Server Error');
     }
   }
@@ -144,14 +161,14 @@ export class GuestService {
     }
   }
 
-  async deleteGuest(user: UserEntity, categoryId: number) {
+  async deleteGuest(user: UserEntity, guestId: number) {
     const studentExists = await prisma.guests.findFirst({
-      where: { id: categoryId },
+      where: { id: guestId },
     });
     if (!studentExists) throw CustomError.badRequest('El estudiante no existe');
     try {
       await prisma.guests.update({
-        where: { id: categoryId },
+        where: { id: guestId },
         data: {
           state: false,
         },

@@ -21,6 +21,7 @@ export class GuestRoutes {
 
     // rutas
     router.get('/', [AuthMiddleware.validateJWT], controller.getGuests);
+    router.get('/:codeQr',controller.getGuest)
     router.post('/', controller.createGuest);
     router.put('/:id', [AuthMiddleware.validateJWT], controller.updateGuest);
     router.delete('/:id', [AuthMiddleware.validateJWT], controller.deleteGuest);

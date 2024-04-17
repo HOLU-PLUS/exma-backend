@@ -24,6 +24,13 @@ export class GuestController {
       .catch((error) => this.handleError(error, res));
   };
 
+  getGuest = async (req: Request, res: Response) => {
+    this.guestService
+      .getGuest(req.params.codeQr)
+      .then((guest) => res.json(guest))
+      .catch((error) => this.handleError(error, res));
+  };
+
   createGuest = (req: Request, res: Response) => {
     const [error, createStudentDto] = GuestDto.body(req.body);
     if (error) return res.status(400).json({ error });

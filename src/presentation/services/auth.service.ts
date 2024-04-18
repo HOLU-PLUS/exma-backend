@@ -55,8 +55,8 @@ export class AuthService {
         guest: true,
       },
     });
-    console.log(user);
     if (!user) throw CustomError.badRequest('El Correo no existe');
+    if(!user.guest) throw CustomError.badRequest('La cuenta como invitado no existe');
 
     const isMatching = bcryptAdapter.compare(loginUserDto.password, user.password);
     if (!isMatching) throw CustomError.badRequest('La Contraseña no es valida');

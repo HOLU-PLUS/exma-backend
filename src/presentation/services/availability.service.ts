@@ -6,26 +6,22 @@ const prisma = new PrismaClient();
 export class AvailabilityService {
   constructor() {}
 
-  async getAvailabilities(paginationDto: PaginationDto, userId: number) {
-    const { page, limit } = paginationDto;
+  async getAvailabilitiesByGuest(codeQr: string) {
     try {
-      const [total, availabilities] = await Promise.all([
-        prisma.availabilities.count({ where: { userId } }),
-        prisma.availabilities.findMany({
-          skip: (page - 1) * limit,
-          take: limit,
-        }),
-      ]);
-
+      const availabilities = await prisma.availabilities.findMany({
+        where: {
+          user: {
+            guest: {
+              codeQr: codeQr,
+            },
+          },
+        },
+      });
+      if(!availabilities)throw CustomError.badRequest('No existe la disponibilidad para el invitado');
       return CustomSuccessful.response({
         result: {
-          page: page,
-          limit: limit,
-          total: total,
-          next: `/api/availavility?page=${page + 1}&limit=${limit}`,
-          prev: page - 1 > 0 ? `/api/availavility?page=${page - 1}&limit=${limit}` : null,
-          availabilities: availabilities.map((role) => {
-            const { ...availabilityEntity } = AvailabilityEntity.fromObject(role);
+          availabilities: availabilities.map((availability) => {
+            const { ...availabilityEntity } = AvailabilityEntity.fromObject(availability);
             return availabilityEntity;
           }),
         },

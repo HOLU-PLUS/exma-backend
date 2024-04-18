@@ -10,7 +10,7 @@ export class AvailabilityRoutes {
     const controller = new AvailabilityController(availabilityService);
 
     // rutas
-    router.get('/:id', [AuthMiddleware.validateJWT], controller.getAvailabilities);
+    router.get('/guest/:codeQr', controller.getAvailabilitiesByGuest);
     router.post('/', [AuthMiddleware.validateJWT], controller.createAvailability);
     router.delete('/:id', [AuthMiddleware.validateJWT], controller.deleteAvailability);
     return router;

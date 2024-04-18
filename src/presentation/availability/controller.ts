@@ -12,14 +12,10 @@ export class AvailabilityController {
     console.log(`${error}`);
     return res.status(500).json({ error: 'Internal server error' });
   };
-
-  getAvailabilities = async (req: Request, res: Response) => {
-    const { page = 1, limit = 10 } = req.query;
-    const [error, paginationDto] = PaginationDto.create(+page, +limit);
-    if (error) return res.status(400).json({ error });
-
+  
+  getAvailabilitiesByGuest = async (req: Request, res: Response) => {
     this.eventService
-      .getAvailabilities(paginationDto!,parseInt(req.params.id))
+      .getAvailabilitiesByGuest(req.params.codeQr)
       .then((availabilities) => res.json(availabilities))
       .catch((error) => this.handleError(error, res));
   };

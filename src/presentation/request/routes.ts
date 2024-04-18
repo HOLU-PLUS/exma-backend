@@ -10,7 +10,7 @@ export class RequestRoutes {
     const controller = new RequestController(requestService);
 
     // rutas
-    router.get('/', [AuthMiddleware.validateJWT], controller.getRequests);
+    router.get('/', [AuthMiddleware.validateJWT], controller.getRequestsByGuest);
     router.post('/', [AuthMiddleware.validateJWT], controller.createRequest);
     router.delete('/:id', [AuthMiddleware.validateJWT], controller.deleteRequest);
     return router;

@@ -16,6 +16,20 @@ export class AvailabilityService {
             },
           },
         },
+        include:{
+          requests:{
+            where:{
+              accepted:true,
+            },
+            include:{
+              user:{
+                include:{
+                  guest:true
+                }
+              }
+            }
+          }
+        }
       });
       if(!availabilities)throw CustomError.badRequest('No existe la disponibilidad para el invitado');
       return CustomSuccessful.response({

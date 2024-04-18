@@ -6,7 +6,7 @@ export class RoleEntity {
   static fromObject(object: { [key: string]: any }) {
     const { id, name, permissions } = object;
 
-    const permissionEntity = permissions ? permissions.map((e: PermissionEntity) => PermissionEntity.fromObject(e)) : undefined;
+    const permissionEntity = permissions ? permissions.map((e: PermissionEntity) => PermissionEntity.fromObject(e)) : [];
 
     return new RoleEntity(id, name, permissionEntity);
   }

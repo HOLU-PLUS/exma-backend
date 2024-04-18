@@ -13,13 +13,13 @@ export class RequestController {
     return res.status(500).json({ error: 'Internal server error' });
   };
 
-  getRequests = async (req: Request, res: Response) => {
+  getRequestsByGuest = async (req: Request, res: Response) => {
     const { page = 1, limit = 10 } = req.query;
     const [error, paginationDto] = PaginationDto.create(+page, +limit);
     if (error) return res.status(400).json({ error });
 
     this.eventService
-      .getRequests(paginationDto!,req.body.user)
+      .getRequestsByGuest(paginationDto!,req.body.user)
       .then((requests) => res.json(requests))
       .catch((error) => this.handleError(error, res));
   };

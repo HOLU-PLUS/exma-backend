@@ -52,6 +52,7 @@ export class UserEntity {
     if (!name) throw CustomError.badRequest('Falta el nombre');
     if (!lastName) throw CustomError.badRequest('Falta el apellido');
     if (!email) throw CustomError.badRequest('Falta el correo');
+  
 
     return new UserEntity(id, name, lastName, email);
   }

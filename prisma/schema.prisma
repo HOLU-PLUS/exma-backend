@@ -57,8 +57,8 @@ model Users {
 model Availabilities {
   id                      Int                         @id @default(autoincrement())
   userId                  Int                         @db.Integer
-  start                   DateTime                    @db.Date
-  end                     DateTime                    @db.Date
+  start                   DateTime
+  end                     DateTime
   createdAt               DateTime                    @default(now())
   updatedAt               DateTime                    @updatedAt
   user                    Users                       @relation(fields: [userId], references: [id])
@@ -116,8 +116,8 @@ model Events {
   name                    String                      @db.VarChar(255)
   description             String                      @db.VarChar(255)
   price                   Int                         @db.Integer @default(0)
-  start                   DateTime                    @db.Date
-  end                     DateTime                    @db.Date
+  start                   DateTime
+  end                     DateTime
   state                   Boolean                     @default(true)
   createdAt               DateTime                    @default(now())
   updatedAt               DateTime                    @updatedAt
@@ -130,8 +130,8 @@ model Activities {
   eventId                 Int                         @db.Integer
   name                    String                      @db.VarChar(255)
   description             String                      @db.VarChar(255)
-  start                   DateTime                    @db.Date
-  end                     DateTime                    @db.Date
+  start                   DateTime
+  end                     DateTime
   state                   Boolean                     @default(true)
   createdAt               DateTime                    @default(now())
   updatedAt               DateTime                    @updatedAt

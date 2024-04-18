@@ -6,14 +6,15 @@ const prisma = new PrismaClient();
 export class RequestService {
   constructor() {}
 
-  async getRequests(paginationDto: PaginationDto, user: UserEntity) {
+  async getRequestsByGuest(paginationDto: PaginationDto, user: UserEntity) {
     const { page, limit } = paginationDto;
     try {
-      const [total, availabilities] = await Promise.all([
+      const [total, requests] = await Promise.all([
         prisma.requests.count({ where: { userId: user.id } }),
         prisma.requests.findMany({
           skip: (page - 1) * limit,
           take: limit,
+          where: { userId: user.id },
         }),
       ]);
 
@@ -24,7 +25,7 @@ export class RequestService {
           total: total,
           next: `/api/request?page=${page + 1}&limit=${limit}`,
           prev: page - 1 > 0 ? `/api/request?page=${page - 1}&limit=${limit}` : null,
-          roles: availabilities.map((role) => {
+          requests: requests.map((role) => {
             const { ...requestEntity } = RequestEntity.fromObject(role);
             return requestEntity;
           }),
@@ -46,10 +47,10 @@ export class RequestService {
           userId: user.id,
           ...createRequestDto,
         },
-        include:{
-          user:true,
-          avalavility:true
-        }
+        include: {
+          user: true,
+          avalavility: true,
+        },
       });
 
       const { ...requestEntity } = RequestEntity.fromObject(request);
